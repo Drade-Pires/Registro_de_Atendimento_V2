@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <title>Registro de Atendimentos</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <h1>Registro de Atendimentos</h1>
+        <p>Ocorrências e visitas técnicas</p>
+      </div>
+      <div class="db-pill" title="Banco SQLite salvo nesta máquina">Banco local</div>
+    </header>
+
+    <div class="tabs" role="tablist" aria-label="Seções">
+      <button class="tab-btn active" data-tab="registro" role="tab" aria-selected="true">Registro</button>
+      <button class="tab-btn" data-tab="historico" role="tab" aria-selected="false">Histórico</button>
+    </div>
+
+    <section id="registro" class="tab-content active" role="tabpanel">
+      <div class="panel">
+        <div class="modelo-switch" aria-label="Selecionar modelo de preenchimento">
+          <span class="label">Modelo</span>
+          <div class="modelo-btns" role="group" aria-label="Modelos">
+            <button type="button" class="btn-modelo active" id="btnModeloOcorrencia" title="Ocorrência" aria-pressed="true" data-model="ocorrencia">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M1 21h22L12 2 1 21Zm12-3h-2v-2h2v2Zm0-4h-2v-4h2v4Z"/></svg>
+            </button>
+            <button type="button" class="btn-modelo" id="btnModeloVisita" title="Visita Técnica" aria-pressed="false" data-model="visita">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.7 13.35 12 3.65 8.47 7.18l1.41 1.41L12 6.47l7.07 7.07-4.24 4.24-2.12-2.12-1.41 1.41 3.53 3.53 6.36-6.36Zm-12.02-.69-1.41-1.41L2 17.12V20h2.88l4.8-4.8Z"/></svg>
+            </button>
+          </div>
+          <strong id="tituloModelo">Ocorrência</strong>
+        </div>
+
+        <div class="linha-dupla">
+          <div>
+            <label for="data">Data</label>
+            <input type="text" id="data" readonly />
+          </div>
+          <div>
+            <label for="hora">Hora</label>
+            <input type="text" id="hora" readonly />
+          </div>
+        </div>
+
+        <div id="formOcorrencia" class="form-model active">
+          <div class="duas-colunas">
+            <div>
+              <label for="nome">Nome</label>
+              <input type="text" id="nome" autocomplete="name" />
+            </div>
+            <div>
+              <label for="telefone">Telefone</label>
+              <input type="text" id="telefone" inputmode="tel" />
+            </div>
+          </div>
+
+          <div class="duas-colunas">
+            <div>
+              <label for="empresa">Empresa</label>
+              <input type="text" id="empresa" />
+            </div>
+            <div>
+              <label for="cnpj">CNPJ</label>
+              <input type="text" id="cnpj" inputmode="numeric" />
+            </div>
+          </div>
+
+          <div class="duas-colunas">
+            <div>
+              <label for="problema">Problema</label>
+              <input type="text" id="problema" />
+            </div>
+            <div>
+              <label for="solucao">Solução</label>
+              <input type="text" id="solucao" />
+            </div>
+          </div>
+
+          <label for="obs">Observações</label>
+          <textarea id="obs" rows="3"></textarea>
+        </div>
+
+        <div id="formVisita" class="form-model">
+          <div class="duas-colunas">
+            <div>
+              <label for="zona">Nº DA ZONA</label>
+              <input type="text" id="zona" />
+            </div>
+            <div>
+              <label for="ns">NS</label>
+              <input type="text" id="ns" />
+            </div>
+          </div>
+
+          <label for="endereco">ENDEREÇO</label>
+          <input type="text" id="endereco" />
+
+          <div class="duas-colunas">
+            <div>
+              <label for="periodo">PERÍODO</label>
+              <input type="text" id="periodo" placeholder="Ex.: Manhã, Tarde, Noite" />
+            </div>
+            <div>
+              <label for="contato">CONTATO</label>
+              <input type="text" id="contato" />
+            </div>
+          </div>
+
+          <label for="responsavel">Nome do responsável</label>
+          <input type="text" id="responsavel" />
+
+          <label for="observacao">OBSERVAÇÃO</label>
+          <textarea id="observacao" rows="3"></textarea>
+        </div>
+
+        <div class="botoes">
+          <button id="copyBtn">Copiar e salvar</button>
+          <button id="saveEditBtn" class="secondary" hidden>Salvar edição</button>
+          <button id="clearBtn" class="ghost">Limpar</button>
+        </div>
+
+        <div id="status" class="status" role="status" aria-live="polite"></div>
+      </div>
+
+      <section class="preview-section">
+        <h2>Pré-visualização</h2>
+        <div id="preview" class="preview-box"></div>
+      </section>
+    </section>
+
+    <section id="historico" class="tab-content" role="tabpanel">
+      <div class="panel">
+        <h2>Histórico Completo</h2>
+
+        <div class="filters">
+          <input type="date" id="filtroInicio" />
+          <input type="date" id="filtroFim" />
+          <input type="text" id="filtroCliente" placeholder="Cliente" />
+          <input type="text" id="filtroEmpresa" placeholder="Empresa" />
+          <input type="text" id="filtroTelefone" placeholder="Telefone" />
+          <input type="text" id="filtroCNPJ" placeholder="CNPJ" />
+          <input type="text" id="buscaGeral" placeholder="Busca geral..." />
+        </div>
+
+        <div class="botoes">
+          <button id="btnFiltrar">Aplicar filtros</button>
+          <button id="btnLimparFiltros" class="ghost">Limpar</button>
+          <button id="btnExportFiltrado" class="secondary">Exportar TXT filtrado</button>
+          <button id="btnExportCompleto" class="secondary">Exportar TXT completo</button>
+        </div>
+      </div>
+
+      <div id="historyList"></div>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

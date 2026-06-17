@@ -1,0 +1,13 @@
+{
+  "name": "registro-atendimentos",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Aplicação web local para registro de ocorrências e visitas técnicas com banco SQLite por usuário.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
