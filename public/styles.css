@@ -111,6 +111,7 @@ label {
 
 input,
 textarea,
+select,
 button {
   width: 100%;
   padding: 9px 10px;
@@ -121,6 +122,7 @@ button {
 
 input:focus,
 textarea:focus,
+select:focus,
 button:focus-visible {
   outline: 2px solid #8eb4df;
   outline-offset: 1px;
@@ -159,6 +161,67 @@ button.ghost:hover { background: #f4f7fb; }
   border: 1px solid var(--line);
   white-space: pre-wrap;
   min-height: 150px;
+}
+
+.preview-box.visual {
+  background: #fff;
+  white-space: normal;
+}
+
+.bug-preview-doc {
+  max-width: 780px;
+  color: #202733;
+}
+
+.bug-preview-intro {
+  margin: 0 0 18px;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.bug-preview-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: #fff;
+  border: 2px solid #7f8490;
+}
+
+.bug-preview-table th,
+.bug-preview-table td {
+  border: 2px solid #8a8f99;
+  padding: 12px 14px;
+  text-align: left;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.bug-preview-table th {
+  width: 32%;
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+}
+
+.bug-preview-table td {
+  font-size: 17px;
+  color: #3d4655;
+}
+
+.bug-preview-description {
+  margin-top: 24px;
+}
+
+.bug-preview-description strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 18px;
+}
+
+.bug-preview-description p {
+  margin: 0;
+  color: #344255;
+  white-space: pre-wrap;
 }
 
 .filters input {
@@ -274,6 +337,52 @@ button.ghost:hover { background: #f4f7fb; }
 
 .btn-modelo svg { width: 24px; height: 24px; }
 
+.bug-report,
+.revenda-email {
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.bug-toggle {
+  width: auto;
+  min-width: 190px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #eef4fb;
+  color: #24496f;
+  border-color: #b8c7d9;
+}
+
+.bug-toggle:hover { background: #dfeaf6; }
+
+.bug-toggle svg {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.18s ease;
+}
+
+.bug-report.open .bug-toggle svg,
+.revenda-email.open .bug-toggle svg { transform: rotate(180deg); }
+
+.bug-fields {
+  margin-top: 8px;
+  padding: 2px 0 0;
+}
+
+.bug-actions {
+  display: flex;
+  justify-content: flex-start;
+  margin-top: 12px;
+}
+
+.bug-actions button {
+  width: auto;
+  min-width: 210px;
+}
+
 .badge {
   display: inline-block;
   padding: 2px 8px;
@@ -285,6 +394,8 @@ button.ghost:hover { background: #f4f7fb; }
 
 .badge.ocorrencia { background: #e8f0fe; color: #1a53b0; }
 .badge.visita { background: #e6f4ea; color: #1e6d3e; }
+.badge.bug { background: #fff4d6; color: #7a4a00; }
+.badge.revenda { background: #edf2ff; color: #334155; }
 .editado { color: #667; font-size: 12px; }
 
 .form-model { display: none; }
@@ -305,11 +416,28 @@ button.ghost:hover { background: #f4f7fb; }
 
   h1 { font-size: 23px; }
   .botoes button,
+  .bug-actions button,
   .tab-btn {
     width: 100%;
   }
 
   .history-item {
     flex-direction: column;
+  }
+
+  .bug-preview-intro,
+  .bug-preview-table th,
+  .bug-preview-table td,
+  .bug-preview-description strong {
+    font-size: 15px;
+  }
+
+  .bug-preview-table th,
+  .bug-preview-table td {
+    padding: 10px;
+  }
+
+  .bug-preview-table th {
+    width: 42%;
   }
 }

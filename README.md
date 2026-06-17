@@ -8,7 +8,7 @@ Clique duas vezes em `iniciar.bat`.
 
 O navegador abrirá automaticamente em:
 
-http://127.0.0.1:8765
+http://127.0.0.1:8766
 
 ## Como atualizar pela versão do GitHub
 

@@ -83,9 +83,73 @@
 
           <label for="obs">Observações</label>
           <textarea id="obs" rows="3"></textarea>
+
+          <div class="bug-report">
+            <button type="button" id="toggleBugReport" class="bug-toggle" aria-expanded="false" aria-controls="bugReportFields">
+              <span>Relatório de bug</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41Z"/></svg>
+            </button>
+
+            <div id="bugReportFields" class="bug-fields" hidden>
+              <div class="duas-colunas">
+                <div>
+                  <label for="bugCnpj">CNPJ</label>
+                  <input type="text" id="bugCnpj" inputmode="numeric" />
+                </div>
+                <div>
+                  <label for="bugNome">Empresa</label>
+                  <input type="text" id="bugNome" />
+                </div>
+              </div>
+
+              <div class="duas-colunas">
+                <div>
+                  <label for="bugUsuarios">Nº de usuários</label>
+                  <input type="text" id="bugUsuarios" inputmode="numeric" />
+                </div>
+                <div>
+                  <label for="bugEquipamentos">Nº de equipamentos</label>
+                  <input type="text" id="bugEquipamentos" inputmode="numeric" />
+                </div>
+              </div>
+
+              <div class="duas-colunas">
+                <div>
+                  <label for="bugValorPago">Valor pago</label>
+                  <input type="text" id="bugValorPago" placeholder="Ex.: R$189,00" />
+                </div>
+                <div>
+                  <label for="bugUrgencia">Urgência</label>
+                  <select id="bugUrgencia">
+                    <option value="">Selecione</option>
+                    <option>Baixa</option>
+                    <option>Média</option>
+                    <option>Alta</option>
+                    <option>Crítica</option>
+                  </select>
+                </div>
+              </div>
+
+              <label for="bugTipoEquipamento">Tipo de equipamento</label>
+              <input type="text" id="bugTipoEquipamento" placeholder="Ex.: RHID + Mobile + Facial" />
+
+              <label for="bugDominioCliente">Domínio do cliente</label>
+              <input type="text" id="bugDominioCliente" />
+
+              <label for="bugDescricao">Descrição do bug</label>
+              <textarea id="bugDescricao" rows="4"></textarea>
+
+              <div class="bug-actions">
+                <button type="button" id="copyBugReportBtn" class="secondary">Copiar relatório em tabela</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div id="formVisita" class="form-model">
+          <label for="visitaEmpresa">Empresa / Razão social</label>
+          <input type="text" id="visitaEmpresa" />
+
           <div class="duas-colunas">
             <div>
               <label for="zona">Nº DA ZONA</label>
@@ -116,6 +180,33 @@
 
           <label for="observacao">OBSERVAÇÃO</label>
           <textarea id="observacao" rows="3"></textarea>
+
+          <div class="revenda-email">
+            <button type="button" id="toggleRevendaEmail" class="bug-toggle" aria-expanded="false" aria-controls="revendaEmailFields">
+              <span>E-mail fora da região</span>
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M7.41 8.59 12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41Z"/></svg>
+            </button>
+
+            <div id="revendaEmailFields" class="bug-fields" hidden>
+              <div class="duas-colunas">
+                <div>
+                  <label for="revendaRazaoSocial">Razão social (Empresa)</label>
+                  <input type="text" id="revendaRazaoSocial" />
+                </div>
+                <div>
+                  <label for="revendaCnpj">CNPJ</label>
+                  <input type="text" id="revendaCnpj" inputmode="numeric" />
+                </div>
+              </div>
+
+              <label for="revendaDefeito">Defeito</label>
+              <input type="text" id="revendaDefeito" />
+
+              <div class="bug-actions">
+                <button type="button" id="copyRevendaEmailBtn" class="secondary">Copiar e-mail para revenda</button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div class="botoes">

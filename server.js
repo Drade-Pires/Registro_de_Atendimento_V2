@@ -9,7 +9,7 @@ const PUBLIC_DIR = path.join(BASE_DIR, "public");
 const DATA_DIR = path.join(BASE_DIR, "data");
 const DB_PATH = path.join(DATA_DIR, "atendimentos.db");
 const HOST = "127.0.0.1";
-const PORT = Number(process.env.PORT || 8765);
+const PORT = Number(process.env.PORT || 8766);
 
 fs.mkdirSync(DATA_DIR, { recursive: true });
 
@@ -34,6 +34,20 @@ db.exec(`
     contato TEXT,
     responsavel TEXT,
     observacao TEXT,
+    bug_ativo INTEGER NOT NULL DEFAULT 0,
+    bug_cnpj TEXT,
+    bug_nome TEXT,
+    bug_usuarios TEXT,
+    bug_equipamentos TEXT,
+    bug_valor_pago TEXT,
+    bug_tipo_equipamento TEXT,
+    bug_dominio_cliente TEXT,
+    bug_urgencia TEXT,
+    bug_descricao TEXT,
+    revenda_email_ativo INTEGER NOT NULL DEFAULT 0,
+    revenda_razao_social TEXT,
+    revenda_cnpj TEXT,
+    revenda_defeito TEXT,
     chave TEXT NOT NULL UNIQUE,
     criado_em TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
     atualizado_em TEXT
@@ -41,6 +55,28 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS idx_registros_tipo ON registros(tipo);
   CREATE INDEX IF NOT EXISTS idx_registros_criado ON registros(criado_em);
 `);
+
+function garantirColuna(nome, definicao) {
+  const colunas = db.prepare("PRAGMA table_info(registros)").all().map((coluna) => coluna.name);
+  if (!colunas.includes(nome)) db.exec(`ALTER TABLE registros ADD COLUMN ${nome} ${definicao}`);
+}
+
+[
+  ["bug_ativo", "INTEGER NOT NULL DEFAULT 0"],
+  ["bug_cnpj", "TEXT"],
+  ["bug_nome", "TEXT"],
+  ["bug_usuarios", "TEXT"],
+  ["bug_equipamentos", "TEXT"],
+  ["bug_valor_pago", "TEXT"],
+  ["bug_tipo_equipamento", "TEXT"],
+  ["bug_dominio_cliente", "TEXT"],
+  ["bug_urgencia", "TEXT"],
+  ["bug_descricao", "TEXT"],
+  ["revenda_email_ativo", "INTEGER NOT NULL DEFAULT 0"],
+  ["revenda_razao_social", "TEXT"],
+  ["revenda_cnpj", "TEXT"],
+  ["revenda_defeito", "TEXT"],
+].forEach(([nome, definicao]) => garantirColuna(nome, definicao));
 
 const tipos = {
   ".html": "text/html; charset=utf-8",
@@ -62,11 +98,13 @@ function soDigitos(valor) {
 }
 
 function gerarChave(dados) {
-  const partes = dados.tipo === "visita"
-    ? [
+  let partes;
+  if (dados.tipo === "visita") {
+    partes = [
         "visita",
         normalizarTexto(dados.data),
         normalizarTexto(dados.hora),
+        normalizarTexto(dados.empresa),
         normalizarTexto(dados.zona),
         normalizarTexto(dados.ns),
         normalizarTexto(dados.endereco),
@@ -74,8 +112,17 @@ function gerarChave(dados) {
         normalizarTexto(dados.contato),
         normalizarTexto(dados.responsavel),
         normalizarTexto(dados.observacao),
-      ]
-    : [
+      ];
+    if (Number(dados.revenda_email_ativo || 0)) {
+      partes.push(
+        "email-revenda",
+        normalizarTexto(dados.revenda_razao_social),
+        soDigitos(dados.revenda_cnpj),
+        normalizarTexto(dados.revenda_defeito),
+      );
+    }
+  } else {
+    partes = [
         "ocorrencia",
         normalizarTexto(dados.data),
         normalizarTexto(dados.hora),
@@ -87,6 +134,21 @@ function gerarChave(dados) {
         normalizarTexto(dados.solucao),
         normalizarTexto(dados.obs),
       ];
+    if (Number(dados.bug_ativo || 0)) {
+      partes.push(
+        "relatorio-bug",
+        soDigitos(dados.bug_cnpj),
+        normalizarTexto(dados.bug_nome),
+        normalizarTexto(dados.bug_usuarios),
+        normalizarTexto(dados.bug_equipamentos),
+        normalizarTexto(dados.bug_valor_pago),
+        normalizarTexto(dados.bug_tipo_equipamento),
+        normalizarTexto(dados.bug_dominio_cliente),
+        normalizarTexto(dados.bug_urgencia),
+        normalizarTexto(dados.bug_descricao),
+      );
+    }
+  }
   return partes.join("\n");
 }
 
@@ -110,6 +172,20 @@ function limparRegistro(dados) {
     contato: String(dados.contato || ""),
     responsavel: String(dados.responsavel || ""),
     observacao: String(dados.observacao || dados.obs || ""),
+    bug_ativo: Number(dados.bug_ativo || 0) ? 1 : 0,
+    bug_cnpj: String(dados.bug_cnpj || ""),
+    bug_nome: String(dados.bug_nome || ""),
+    bug_usuarios: String(dados.bug_usuarios || ""),
+    bug_equipamentos: String(dados.bug_equipamentos || ""),
+    bug_valor_pago: String(dados.bug_valor_pago || ""),
+    bug_tipo_equipamento: String(dados.bug_tipo_equipamento || ""),
+    bug_dominio_cliente: String(dados.bug_dominio_cliente || ""),
+    bug_urgencia: String(dados.bug_urgencia || ""),
+    bug_descricao: String(dados.bug_descricao || ""),
+    revenda_email_ativo: Number(dados.revenda_email_ativo || 0) ? 1 : 0,
+    revenda_razao_social: String(dados.revenda_razao_social || ""),
+    revenda_cnpj: String(dados.revenda_cnpj || ""),
+    revenda_defeito: String(dados.revenda_defeito || ""),
   };
   registro.chave = gerarChave(registro);
   return registro;
@@ -170,7 +246,7 @@ function buscarRegistros(url) {
     valores.cliente = `%${cliente}%`;
   }
   if (empresa) {
-    filtros.push("LOWER(empresa) LIKE LOWER(:empresa)");
+    filtros.push("(LOWER(empresa) LIKE LOWER(:empresa) OR LOWER(revenda_razao_social) LIKE LOWER(:empresa))");
     valores.empresa = `%${empresa}%`;
   }
   if (telefone) {
@@ -178,7 +254,11 @@ function buscarRegistros(url) {
     valores.telefone = `%${telefone}%`;
   }
   if (cnpj) {
-    filtros.push("REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '/', ''), '-', ''), ' ', '') LIKE :cnpj");
+    filtros.push(`(
+      REPLACE(REPLACE(REPLACE(REPLACE(cnpj, '.', ''), '/', ''), '-', ''), ' ', '') LIKE :cnpj OR
+      REPLACE(REPLACE(REPLACE(REPLACE(bug_cnpj, '.', ''), '/', ''), '-', ''), ' ', '') LIKE :cnpj OR
+      REPLACE(REPLACE(REPLACE(REPLACE(revenda_cnpj, '.', ''), '/', ''), '-', ''), ' ', '') LIKE :cnpj
+    )`);
     valores.cnpj = `%${cnpj}%`;
   }
   if (busca) {
@@ -190,7 +270,13 @@ function buscarRegistros(url) {
         COALESCE(obs, '') || ' ' || COALESCE(zona, '') || ' ' ||
         COALESCE(ns, '') || ' ' || COALESCE(endereco, '') || ' ' ||
         COALESCE(periodo, '') || ' ' || COALESCE(contato, '') || ' ' ||
-        COALESCE(responsavel, '') || ' ' || COALESCE(observacao, '')
+        COALESCE(responsavel, '') || ' ' || COALESCE(observacao, '') || ' ' ||
+        COALESCE(bug_cnpj, '') || ' ' || COALESCE(bug_nome, '') || ' ' ||
+        COALESCE(bug_usuarios, '') || ' ' || COALESCE(bug_equipamentos, '') || ' ' ||
+        COALESCE(bug_valor_pago, '') || ' ' || COALESCE(bug_tipo_equipamento, '') || ' ' ||
+        COALESCE(bug_dominio_cliente, '') || ' ' || COALESCE(bug_urgencia, '') || ' ' ||
+        COALESCE(bug_descricao, '') || ' ' || COALESCE(revenda_razao_social, '') || ' ' ||
+        COALESCE(revenda_cnpj, '') || ' ' || COALESCE(revenda_defeito, '')
       ) LIKE LOWER(:busca)
     `);
     valores.busca = `%${busca}%`;
@@ -205,10 +291,16 @@ function criarRegistro(dados) {
   const result = db.prepare(`
     INSERT INTO registros (
       tipo, data, hora, nome, telefone, empresa, cnpj, problema, solucao,
-      obs, zona, ns, endereco, periodo, contato, responsavel, observacao, chave
+      obs, zona, ns, endereco, periodo, contato, responsavel, observacao,
+      bug_ativo, bug_cnpj, bug_nome, bug_usuarios, bug_equipamentos, bug_valor_pago,
+      bug_tipo_equipamento, bug_dominio_cliente, bug_urgencia, bug_descricao,
+      revenda_email_ativo, revenda_razao_social, revenda_cnpj, revenda_defeito, chave
     ) VALUES (
       :tipo, :data, :hora, :nome, :telefone, :empresa, :cnpj, :problema, :solucao,
-      :obs, :zona, :ns, :endereco, :periodo, :contato, :responsavel, :observacao, :chave
+      :obs, :zona, :ns, :endereco, :periodo, :contato, :responsavel, :observacao,
+      :bug_ativo, :bug_cnpj, :bug_nome, :bug_usuarios, :bug_equipamentos, :bug_valor_pago,
+      :bug_tipo_equipamento, :bug_dominio_cliente, :bug_urgencia, :bug_descricao,
+      :revenda_email_ativo, :revenda_razao_social, :revenda_cnpj, :revenda_defeito, :chave
     )
   `).run(registro);
   return db.prepare("SELECT * FROM registros WHERE id = ?").get(result.lastInsertRowid);
@@ -226,7 +318,14 @@ function atualizarRegistro(id, dados) {
       problema = :problema, solucao = :solucao, obs = :obs,
       zona = :zona, ns = :ns, endereco = :endereco,
       periodo = :periodo, contato = :contato, responsavel = :responsavel,
-      observacao = :observacao, chave = :chave, atualizado_em = CURRENT_TIMESTAMP
+      observacao = :observacao, bug_ativo = :bug_ativo,
+      bug_cnpj = :bug_cnpj, bug_nome = :bug_nome,
+      bug_usuarios = :bug_usuarios, bug_equipamentos = :bug_equipamentos,
+      bug_valor_pago = :bug_valor_pago, bug_tipo_equipamento = :bug_tipo_equipamento,
+      bug_dominio_cliente = :bug_dominio_cliente, bug_urgencia = :bug_urgencia,
+      bug_descricao = :bug_descricao, revenda_email_ativo = :revenda_email_ativo,
+      revenda_razao_social = :revenda_razao_social, revenda_cnpj = :revenda_cnpj,
+      revenda_defeito = :revenda_defeito, chave = :chave, atualizado_em = CURRENT_TIMESTAMP
     WHERE id = :id
   `).run(registro);
   return db.prepare("SELECT * FROM registros WHERE id = ?").get(id);
